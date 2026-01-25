@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "IntelliSave",
+  "version": "1.0.0",
+  "description": "Smart download manager that organizes files into folders based on rules.",
+  
+  "permissions": ["downloads", "storage", "tabs", "notifications"],
+  "host_permissions": ["<all_urls>"],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/logo16x16.png",
+      "48": "assets/logo48x48.png",
+      "128": "assets/logo128x128.png"
+    }
+  },
+  
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  
+  "icons": {
+    "16": "assets/logo16x16.png",
+    "48": "assets/logo48x48.png",
+    "128": "assets/logo128x128.png"
+  }
+}
