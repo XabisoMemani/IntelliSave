@@ -526,6 +526,7 @@ function openSiteModal(website = "", selectedExtensions = []) {
           <input type="checkbox" class="category-checkbox" 
                  value="${name}" data-exts="${extensions.join(",")}" 
                  ${isChecked ? "checked" : ""}>
+          <img src="${getFileIcon(name.toLowerCase(), name)}" class="category-icon" alt="" />
           <div class="category-meta">
             <span class="category-name">${name}</span>
             <span class="file-type-exts">
@@ -754,10 +755,12 @@ function getFileIcon(extension, folder) {
     jpg: "photo",
     jpeg: "photo",
     png: "photo",
-    gif: "photo",
     webp: "photo",
     bmp: "photo",
     tiff: "photo",
+
+    // GIFs
+    gif: "gif",
 
     // Vector files
     svg: "vector",
@@ -766,8 +769,14 @@ function getFileIcon(extension, folder) {
     ico: "vector",
     icns: "vector",
 
+    // Graphics
+    psd: "graphic",
+    sketch: "graphic",
+    xd: "graphic",
+    fig: "graphic",
+
     // Documents
-    pdf: "document",
+    pdf: "pdf",
     doc: "document",
     docx: "document",
     txt: "document",
@@ -833,8 +842,12 @@ function getFileIcon(extension, folder) {
   // Try folder name
   if (folderLower.includes("photo") || folderLower.includes("image"))
     return "assets/file-icons/photo.svg";
+  if (folderLower.includes("gif")) return "assets/file-icons/gif.svg";
   if (folderLower.includes("vector")) return "assets/file-icons/vector.svg";
+  if (folderLower.includes("graphic") || folderLower.includes("design"))
+    return "assets/file-icons/graphic.svg";
   if (folderLower.includes("doc")) return "assets/file-icons/document.svg";
+  if (folderLower.includes("pdf")) return "assets/file-icons/pdf.svg";
   if (folderLower.includes("archive") || folderLower.includes("zip"))
     return "assets/file-icons/archive.svg";
   if (folderLower.includes("audio") || folderLower.includes("music"))

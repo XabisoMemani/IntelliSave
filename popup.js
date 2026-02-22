@@ -215,19 +215,34 @@ function getFileIcon(extension, folder) {
   const folderLower = (folder || "").toLowerCase();
   const extLower = (extension || "").toLowerCase();
 
-  // Simple icon mapping
+  // Map extensions to icons
   const iconMap = {
-    // Images
+    // Image files
     jpg: "photo",
     jpeg: "photo",
     png: "photo",
-    gif: "photo",
     webp: "photo",
     bmp: "photo",
     tiff: "photo",
 
+    // GIFs
+    gif: "gif",
+
+    // Vector files
+    svg: "vector",
+    ai: "vector",
+    eps: "vector",
+    ico: "vector",
+    icns: "vector",
+
+    // Graphics
+    psd: "graphic",
+    sketch: "graphic",
+    xd: "graphic",
+    fig: "graphic",
+
     // Documents
-    pdf: "document",
+    pdf: "pdf",
     doc: "document",
     docx: "document",
     txt: "document",
@@ -263,6 +278,11 @@ function getFileIcon(extension, folder) {
     html: "code",
     css: "code",
     json: "code",
+    xml: "code",
+    java: "code",
+    cpp: "code",
+    cs: "code",
+    php: "code",
 
     // Fonts
     ttf: "font",
@@ -288,7 +308,12 @@ function getFileIcon(extension, folder) {
   // Try folder name
   if (folderLower.includes("photo") || folderLower.includes("image"))
     return "assets/file-icons/photo.svg";
+  if (folderLower.includes("gif")) return "assets/file-icons/gif.svg";
+  if (folderLower.includes("vector")) return "assets/file-icons/vector.svg";
+  if (folderLower.includes("graphic") || folderLower.includes("design"))
+    return "assets/file-icons/graphic.svg";
   if (folderLower.includes("doc")) return "assets/file-icons/document.svg";
+  if (folderLower.includes("pdf")) return "assets/file-icons/pdf.svg";
   if (folderLower.includes("archive") || folderLower.includes("zip"))
     return "assets/file-icons/archive.svg";
   if (folderLower.includes("audio") || folderLower.includes("music"))
@@ -296,6 +321,8 @@ function getFileIcon(extension, folder) {
   if (folderLower.includes("video")) return "assets/file-icons/video.svg";
   if (folderLower.includes("code")) return "assets/file-icons/code.svg";
   if (folderLower.includes("font")) return "assets/file-icons/font.svg";
+  if (folderLower.includes("app") || folderLower.includes("software"))
+    return "assets/file-icons/app.svg";
 
   // Default
   return "assets/file-icons/unknown.svg";

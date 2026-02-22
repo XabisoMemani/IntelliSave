@@ -92,14 +92,13 @@ body {
 }
 
 .file-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
-  background-size: 20px;
+  background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  background-color: var(--bg-secondary);
+  opacity: 0.7;
 }
 
 .file-details {
