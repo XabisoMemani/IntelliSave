@@ -18,7 +18,7 @@
 }
 
 .filename-text {
-  /* allow up to 2 lines then clamp with ellipsis */
+  /* cuts off long filenames with ... */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -36,21 +36,15 @@
   margin-right: 8px;
 }
 
-/* duplicate filetype-icon removed */
+/* icons are loaded from assets/file-icons/ by JS based on file type */
 
-/* Example file type icons (replace URLs with your own SVGs or data URIs) */
-/* icon images are provided from assets/file-icons/ — set by JS per-file */
-/* IntelliSave Options - New Domain-Based UI */
-
-/* Layout */
+/* main layout - sidebar + content side by side */
 .app-container {
   display: flex;
   min-height: 100vh;
 }
 
-/* ===================================
-   Sidebar - ORIGINAL STYLES PRESERVED
-   =================================== */
+/* sidebar */
 .sidebar {
   width: 220px;
   background-color: var(--bg-color);
@@ -167,17 +161,15 @@
   color: var(--text-primary);
 }
 
-/* ===================================
-   Main Content - ORIGINAL STYLES PRESERVED
-   =================================== */
+/* main content area */
 .main-content {
   flex: 1;
   background-color: var(--bg-secondary);
-  height: 100vh; /* Constrain height to enable internal scroll */
-  overflow-y: scroll; /* ALWAYS show scrollbar to prevent layout shift */
+  height: 100vh; /* needs a fixed height so overflow-y scroll works */
+  overflow-y: scroll; /* always show scrollbar so the page doesnt jump around */
 }
 
-/* Page Header (Top Navbar) - ORIGINAL STYLES PRESERVED */
+/* sticky header at the top of each page */
 .page-header {
   display: flex;
   align-items: center;
@@ -188,7 +180,7 @@
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
-  z-index: 100; /* Ensure it's above all content */
+  z-index: 100; /* so it stays on top when scrolling */
 }
 
 .page-header h1 {
@@ -206,7 +198,7 @@
   padding: 12px 34px;
 }
 
-/* Search Box - ORIGINAL STYLES PRESERVED */
+/* search input with icon on the left */
 .search-box {
   display: flex;
   align-items: center;
@@ -251,7 +243,7 @@
 .page {
   display: none;
   flex: 1;
-  /* overflow-y: auto removed to allow .page-header to stick to .main-content */
+  /* dont set overflow here or the sticky header wont work */
 }
 
 .page.active {
@@ -346,7 +338,6 @@
   table-layout: fixed;
   border-collapse: collapse;
   background: var(--bg-color);
-  min-height: 400px; /* Prevent jitter by maintaining height while loading */
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -354,7 +345,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Define column widths */
+/* column widths for the table */
 .activity-table th:nth-child(1) {
   width: 42%;
 }
@@ -367,7 +358,7 @@
 .activity-table td:nth-child(5) {
   width: 7%;
   text-align: left;
-  padding-left: 6px; /* this is perfect*/
+  padding-left: 6px;
 }
 
 .btn-remove {
@@ -381,7 +372,7 @@
   justify-content: center;
   border-radius: 50%;
   transition: all var(--transition-fast);
-  margin: 0; /* Align left */
+  margin: 0;
 }
 
 .btn-remove:hover {
@@ -396,16 +387,15 @@
 
 .activity-table thead {
   background: var(--bg-tertiary);
-  /* border-bottom removed here, handled by box-shadow on th */
+  /* border handled by box-shadow on th below */
 }
 
-/* Table Headers: Reset to normal scroll (prevent overlap with sticky navbar) */
+/* table header row */
 .activity-table th {
-  position: relative; /* Not sticky, as requested to remain how it is */
+  position: relative;
   background: var(--bg-tertiary);
   box-shadow: 0 1px 0 var(--border-color);
   padding: 14px 24px;
-  /* ... rest of th styles */
   text-align: center;
   font-size: 0.9rem;
   font-weight: 500;
@@ -414,7 +404,7 @@
   letter-spacing: 0.5px;
 }
 
-/* First Column Header (File Name): Left align */
+/* file name column is left-aligned, rest are centered */
 .activity-table th:first-child {
   text-align: left;
   padding-left: 16px;
@@ -433,27 +423,26 @@
   background-color: var(--bg-secondary);
 }
 
-/* Table Cells: Center by default */
+/* table cells - centered by default */
 .activity-table td {
   padding: 10px 16px;
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 400;
   color: var(--text-primary);
   vertical-align: middle;
 }
 
-/* First Column Cell (File Name): Left align content */
+/* first column (file name) gets left aligned */
 .activity-table td:first-child {
   text-align: left;
 }
 
-/* The td.cell-filename stays as a table-cell so vertical-align: middle works */
+/* leaving this as a table-cell so vertical-align: middle works */
 .cell-filename {
-  /* No display: flex here! Let it be a table-cell */
 }
 
-/* Inner wrapper for icon + text uses flex for horizontal layout */
+/* flex wrapper so the icon and filename sit side by side */
 .filename-wrapper {
   display: inline-flex;
   align-items: center;
@@ -476,7 +465,7 @@
 }
 
 .filename-text {
-  /* Enforce single line with ellipsis */
+  /* single line with ... at the end if its too long */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -484,8 +473,6 @@
   min-width: 0;
   line-height: 1.5;
 }
-
-/* Remove old centering rule that might conflict */
 
 /* Empty States & Loading */
 .loading,
@@ -561,7 +548,7 @@
 }
 
 #rules-table td {
-  padding: 16px 14px; /* Perfectly aligns height with Activity Log rows (~63px) */
+  padding: 16px 14px; /* matches the row height in the activity log */
   text-align: left;
   vertical-align: middle;
 }
@@ -569,12 +556,12 @@
 .domain-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px; /* Reduced gap for tightness */
+  gap: 10px;
 }
 
 .domain-favicon {
-  width: 18px; /* Subtle size */
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 3px;
   opacity: 0.7;
   filter: grayscale(100%);
@@ -589,7 +576,7 @@
 .domain-name {
   font-weight: 400;
   color: var(--text-primary);
-  font-size: 0.82rem; /* Exact match with Activity Log */
+  font-size: 0.85rem;
 }
 
 .rules-wrapper {
@@ -603,7 +590,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 2px 4px;
-  font-size: 0.82rem; /* Exact match with Activity Log */
+  font-size: 0.85rem;
   color: var(--text-primary);
   font-family: var(--font-mono);
   display: inline-flex;
@@ -793,11 +780,11 @@
 
 .modal {
   background: var(--bg-color);
-  width: 95%; /* Slightly wider for rows */
-  max-width: 600px; /* Increased to fit overrides */
+  width: 95%;
+  max-width: 600px;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  max-height: 90vh; /* More room */
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
 }
@@ -821,7 +808,7 @@
 }
 
 .file-type-option {
-  flex: 2; /* 2/3 of the space */
+  flex: 2; /* takes up 2/3 of the row */
   display: flex;
   align-items: center;
   gap: 12px;
@@ -831,7 +818,7 @@
 
 .category-meta {
   display: flex;
-  flex-direction: row; /* Heading next to checkbox */
+  flex-direction: row; /* category name sits next to the checkbox */
   align-items: center;
   gap: 10px;
   min-width: 0;
@@ -851,11 +838,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px; /* Keep it compact */
+  max-width: 200px;
 }
 
 .folder-override {
-  flex: 1; /* 1/3 of the space */
+  flex: 1; /* takes up 1/3 of the row */
   display: flex;
   align-items: center;
   gap: 8px;
@@ -871,13 +858,13 @@
 
 .override-input,
 #custom-folder-input {
-  width: 100%; /* Fill the 1/3 space */
+  width: 100%;
   max-width: 140px;
   padding: 6px 10px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   background: var(--bg-color);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--text-primary);
 }
 

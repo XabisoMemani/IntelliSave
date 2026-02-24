@@ -12,6 +12,12 @@ let activitySearch = "";
 let rulesSearch = "";
 let installTime = 0;
 
+// lazy rendering state for the activity log
+let allDownloads = []; // all downloads after filtering
+let renderedCount = 0; // tracks how many rows are in the DOM
+const PAGE_SIZE = 20; // rows to add per batch
+let lazyObserver = null; // holds the IntersectionObserver
+
 // ============================================================================
 // 1. SETUP - Run when page loads
 // ============================================================================
@@ -60,8 +66,7 @@ function setupNavigation() {
   });
 }
 
-// Set up all event listeners
-// Initialize event listeners for the page
+// sets up all event listeners for the page
 function setupEventListeners() {
   setupSearchFilters();
   setupButtons();
@@ -75,8 +80,8 @@ function setupEventListeners() {
 
 async function loadSettings() {
   try {
-    // If running outside Chrome (e.g., VS Code preview), chrome.storage won't be available.
-    // Fall back to built-in defaults so the UI still shows categories and options.
+    // chrome.storage isnt available outside the extension (e.g. in VS Code preview)
+    // so just show the defaults
     if (
       typeof chrome === "undefined" ||
       !chrome.storage ||
@@ -115,7 +120,7 @@ async function loadSettings() {
 
     // Get all settings from storage
     const data = await chrome.storage.sync.get([
-      "siteRules", // Changed from domainHints
+      "siteRules",
       "extensionEnabled",
       "learningEnabled",
       "installationTimestamp",
@@ -145,8 +150,7 @@ async function loadSettings() {
   }
 }
 
-// Get default file categories
-// Default file categories and their extensions
+// default file categories
 function getDefaultCategories() {
   return {
     Photos: ["jpg", "jpeg", "png", "webp", "bmp", "tiff"],
@@ -173,17 +177,26 @@ function updateToggle(id, isChecked) {
 // 3. ACTIVITY LOG PAGE
 // ============================================================================
 
-// Render the activity log table (recent organized downloads)
+// Render the activity log table with progressive / lazy loading.
+// All downloads are fetched in one Chrome API call, but rows are painted
+// in batches of PAGE_SIZE as the user scrolls — just like chrome://downloads.
 function showActivityLog() {
   const listElement = document.getElementById("activity-list");
   const countElement = document.getElementById("total-count");
 
   if (!listElement) return;
 
-  // Clear current list
-  listElement.innerHTML = "";
+  // Tear down any previous observer so we don't stack them
+  if (lazyObserver) {
+    lazyObserver.disconnect();
+    lazyObserver = null;
+  }
 
-  // Show loading or empty state during search
+  listElement.innerHTML = "";
+  allDownloads = [];
+  renderedCount = 0;
+
+  // ── empty / error helper ──────────────────────────────────────────────────
   const showEmptyState = (isSearching) => {
     listElement.innerHTML = `
       <tr>
@@ -206,13 +219,12 @@ function showActivityLog() {
     if (countElement) countElement.textContent = "0 downloads";
   };
 
-  // For local development without Chrome API
   if (typeof chrome === "undefined" || !chrome.downloads) {
     showEmptyState(activitySearch.length > 0);
     return;
   }
 
-  // Get download history
+  // ── fetch all at once (fast) ──────────────────────────────────────────────
   chrome.downloads.search(
     { limit: 500, orderBy: ["-startTime"], state: "complete" },
     (downloads) => {
@@ -228,47 +240,105 @@ function showActivityLog() {
       }
 
       try {
-        // Filter to only IntelliSave downloads
-        const intelliSaveDownloads = (downloads || []).filter((download) => {
-          return download.filename.toLowerCase().includes("intellisave");
-        });
+        // Filter to IntelliSave downloads, then apply search
+        allDownloads = (downloads || [])
+          .filter((d) => d.filename.toLowerCase().includes("intellisave"))
+          .filter((d) => {
+            if (!activitySearch) return true;
+            const name = d.filename.split(/[\\\/]/).pop() || "";
+            return name.toLowerCase().includes(activitySearch);
+          });
 
-        // Apply search filter
-        const filteredDownloads = intelliSaveDownloads.filter((download) => {
-          if (!activitySearch) return true;
-          const fileName = download.filename.split(/[\\\/]/).pop() || "";
-          return fileName.toLowerCase().includes(activitySearch);
-        });
-
-        if (filteredDownloads.length === 0) {
+        if (allDownloads.length === 0) {
           showEmptyState(activitySearch.length > 0);
           return;
         }
 
-        // Update count
+        // Show total count immediately
         if (countElement) {
-          const plural = filteredDownloads.length === 1 ? "" : "s";
-          countElement.textContent = `${filteredDownloads.length} download${plural}`;
+          const plural = allDownloads.length === 1 ? "" : "s";
+          countElement.textContent = `${allDownloads.length} download${plural}`;
         }
 
-        // Create table rows
-        listElement.innerHTML = filteredDownloads
-          .map((download) => {
-            return createDownloadRow(download);
-          })
-          .join("");
-      } catch (error) {
-        console.error("Error showing activity log:", error);
+        // Paint first batch right away
+        appendNextBatch(listElement);
+
+        // If there are more rows to come, set up the scroll sentinel
+        if (renderedCount < allDownloads.length) {
+          attachLazySentinel(listElement);
+        }
+      } catch (err) {
+        console.error("Error showing activity log:", err);
         listElement.innerHTML = `
           <tr>
-            <td colspan="5" class="empty-message">
-              Error loading downloads
-            </td>
+            <td colspan="5" class="empty-message">Error loading downloads</td>
           </tr>
         `;
       }
     },
   );
+}
+
+// ── Append the next PAGE_SIZE rows to the table body ────────────────────────
+function appendNextBatch(listElement) {
+  const end = Math.min(renderedCount + PAGE_SIZE, allDownloads.length);
+  const fragment = document.createDocumentFragment();
+
+  for (let i = renderedCount; i < end; i++) {
+    // Parse the HTML string returned by createDownloadRow into a real <tr>
+    const temp = document.createElement("tbody");
+    temp.innerHTML = createDownloadRow(allDownloads[i]);
+    const parsedRow = temp.firstElementChild;
+    if (parsedRow) fragment.appendChild(parsedRow);
+  }
+
+  listElement.appendChild(fragment);
+  renderedCount = end;
+}
+
+// ── Attach an IntersectionObserver sentinel row at the bottom ────────────────
+// The sentinel is a zero-height row that stays after the last rendered row.
+// When it scrolls into view the next batch is appended.
+function attachLazySentinel(listElement) {
+  // Remove any previous sentinel
+  const old = listElement.querySelector(".lazy-sentinel");
+  if (old) old.remove();
+
+  const sentinel = document.createElement("tr");
+  sentinel.className = "lazy-sentinel";
+  sentinel.style.cssText = "height:1px;padding:0;border:none;";
+  sentinel.innerHTML = `<td colspan="5" style="padding:0;border:none;"></td>`;
+  listElement.appendChild(sentinel);
+
+  // The scroll container is .main-content
+  const scroller = document.querySelector(".main-content");
+
+  lazyObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0].isIntersecting) return;
+
+      // Append next batch
+      sentinel.remove();
+      appendNextBatch(listElement);
+
+      // If still more rows, re-attach sentinel; otherwise stop observing
+      if (renderedCount < allDownloads.length) {
+        attachLazySentinel(listElement);
+      } else {
+        lazyObserver.disconnect();
+        lazyObserver = null;
+      }
+    },
+    {
+      root: scroller,
+      // Trigger 200 px before the sentinel enters the viewport so rows
+      // appear before the user physically reaches the bottom
+      rootMargin: "0px 0px 200px 0px",
+      threshold: 0,
+    },
+  );
+
+  lazyObserver.observe(sentinel);
 }
 
 // Create HTML for a download row
@@ -416,9 +486,7 @@ function createRuleRow(website) {
   `;
 }
 
-// Edit a website's rules
-// Open edit flow for an existing website rule
-// Open edit flow for an existing website rule
+// open the edit modal for an existing website rule
 function editWebsite(website) {
   currentEditingSite = website;
   const rules = siteRules[website];
@@ -629,8 +697,7 @@ async function saveExtensionFromModal() {
   closeExtensionModal();
 }
 
-// Save website rules from modal
-// Save rules created/edited in the website modal
+// save the rules from the website modal
 async function saveSiteRules() {
   const websiteInput = document.getElementById("site-domain-input");
   const website = websiteInput.value.trim().toLowerCase();
@@ -656,11 +723,7 @@ async function saveSiteRules() {
     });
   });
 
-  // Process custom extensions (if you add this feature later)
-  // const customInput = document.getElementById("custom-exts-input");
-  // if (customInput && customInput.value.trim()) {
-  //   // Handle custom extensions
-  // }
+  // could add custom extension input here later
 
   if (Object.keys(newRules).length === 0) {
     alert("Please select at least one file type");
@@ -834,12 +897,12 @@ function getFileIcon(extension, folder) {
     rpm: "app",
   };
 
-  // Try extension first
+  // if the extension matches, use that icon
   if (iconMap[extLower]) {
     return `assets/file-icons/${iconMap[extLower]}.svg`;
   }
 
-  // Try folder name
+  // if no extension match, try to guess from the folder name
   if (folderLower.includes("photo") || folderLower.includes("image"))
     return "assets/file-icons/photo.svg";
   if (folderLower.includes("gif")) return "assets/file-icons/gif.svg";
@@ -858,7 +921,7 @@ function getFileIcon(extension, folder) {
   if (folderLower.includes("app") || folderLower.includes("software"))
     return "assets/file-icons/app.svg";
 
-  // Default
+  // nothing matched, return generic icon
   return "assets/file-icons/unknown.svg";
 }
 

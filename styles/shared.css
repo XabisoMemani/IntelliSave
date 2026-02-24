@@ -1,10 +1,7 @@
-/* ===================================
-   IntelliSave - Shared Styles
-   Clean, modern, white background UI
-   =================================== */
+/* shared styles used across both the popup and the options page */
 
 :root {
-  /* Colors - Light Theme (Grey & White) */
+  /* colors */
   --bg-color: #ffffff;
   --bg-secondary: #f9f9f9;
   --bg-tertiary: #f0f0f0;

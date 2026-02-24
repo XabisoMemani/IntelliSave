@@ -1,8 +1,6 @@
 // IntelliSave Popup - To just show quick download history
 
-// ============================================================================
-// 1. INITIALIZATION
-// ============================================================================
+/* initialization */
 
 // Run when popup opens
 document.addEventListener("DOMContentLoaded", () => {
@@ -31,9 +29,7 @@ async function initializePopup() {
   setupPopupListeners();
 }
 
-// ============================================================================
-// 2. EVENT LISTENERS
-// ============================================================================
+// event listeners
 
 // Wire popup event listeners (toggle, settings, view all)
 function setupPopupListeners() {
@@ -84,11 +80,7 @@ function setupPopupListeners() {
   }
 }
 
-// ============================================================================
-// 3. SHOW RECENT DOWNLOADS
-// ============================================================================
-
-// Show recent downloads in popup
+// show recent downloads in the popup
 function showRecentDownloads() {
   const downloadList = document.getElementById("recent-list");
   const emptyMessage = document.getElementById("recent-empty");
@@ -160,9 +152,7 @@ function createDownloadItem(download) {
   `;
 }
 
-// ============================================================================
-// 4. HELPER FUNCTIONS
-// ============================================================================
+// helper functions
 
 // Get "time ago" string (e.g., "2h ago")
 function getTimeAgo(timestamp) {
@@ -215,7 +205,7 @@ function getFileIcon(extension, folder) {
   const folderLower = (folder || "").toLowerCase();
   const extLower = (extension || "").toLowerCase();
 
-  // Map extensions to icons
+  // map extensions to matching icon names
   const iconMap = {
     // Image files
     jpg: "photo",
@@ -300,12 +290,12 @@ function getFileIcon(extension, folder) {
     rpm: "app",
   };
 
-  // Try extension first
+  // if the extension matches, use that icon
   if (iconMap[extLower]) {
     return `assets/file-icons/${iconMap[extLower]}.svg`;
   }
 
-  // Try folder name
+  // if no extension match, try to guess from the folder name
   if (folderLower.includes("photo") || folderLower.includes("image"))
     return "assets/file-icons/photo.svg";
   if (folderLower.includes("gif")) return "assets/file-icons/gif.svg";
@@ -324,7 +314,7 @@ function getFileIcon(extension, folder) {
   if (folderLower.includes("app") || folderLower.includes("software"))
     return "assets/file-icons/app.svg";
 
-  // Default
+  // nothing matched, return generic icon
   return "assets/file-icons/unknown.svg";
 }
 
