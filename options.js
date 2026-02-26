@@ -10,7 +10,6 @@ let activeCategory = null; // Which category is adding extensions
 // Search filters
 let activitySearch = "";
 let rulesSearch = "";
-let installTime = 0;
 
 // lazy rendering state for the activity log
 let allDownloads = []; // all downloads after filtering
@@ -89,7 +88,6 @@ async function loadSettings() {
     ) {
       siteRules = {};
       fileCategories = getDefaultCategories();
-      installTime = 0;
 
       // Show defaults in the UI and set toggles to their default state
       updateToggle("extension-toggle", true);
@@ -123,14 +121,12 @@ async function loadSettings() {
       "siteRules",
       "extensionEnabled",
       "learningEnabled",
-      "installationTimestamp",
       "fileCategories",
     ]);
 
     // Store settings globally
     siteRules = data.siteRules || {};
     fileCategories = data.fileCategories || getDefaultCategories();
-    installTime = data.installationTimestamp || 0;
 
     // Update toggle switches
     updateToggle("extension-toggle", data.extensionEnabled !== false);

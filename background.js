@@ -122,8 +122,6 @@ chrome.runtime.onInstalled.addListener(async () => {
   // Initialize other settings
   if (!settings.declinedSuggestions) updates.declinedSuggestions = {};
   if (!settings.seenDownloads) updates.seenDownloads = {};
-  if (!settings.installationTimestamp)
-    updates.installationTimestamp = Date.now();
 
   // Save updates if any
   if (Object.keys(updates).length > 0) {

@@ -3,6 +3,7 @@
   "name": "IntelliSave",
   "version": "1.0.0",
   "description": "Smart download manager that organizes files into folders based on rules.",
+  "author": "Xabiso Memani",
   
   "permissions": ["downloads", "storage", "tabs", "notifications"],
   "host_permissions": ["<all_urls>"],
