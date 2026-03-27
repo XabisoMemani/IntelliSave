@@ -781,5 +781,25 @@
       </div>
     </footer>
 
+    <script>
+      // Handle toast notification buttons
+      document.addEventListener('DOMContentLoaded', function() {
+        const toast = document.querySelector('.toast');
+        const yesBtn = document.querySelector('.toast-btn.yes');
+        const noBtn = document.querySelector('.toast-btn.no');
+
+        if (yesBtn) {
+          yesBtn.addEventListener('click', function() {
+            if (toast) toast.style.display = 'none';
+          });
+        }
+
+        if (noBtn) {
+          noBtn.addEventListener('click', function() {
+            if (toast) toast.style.display = 'none';
+          });
+        }
+      });
+    </script>
   </body>
 </html>
